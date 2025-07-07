@@ -26,11 +26,11 @@ with st.form("chat_input", clear_on_submit=True):
 if submit and user:
     st.session_state.messages.append(("user", user))
     reply = gemini_response(user)
-    st.session_state.messages.append(("bot",reply))
+    st.session_state.messages.append(("Nomi",reply))
 
 for role, msg in st.session_state.messages:
     if role == "user":
         st.markdown(f"**🧑 You:** {msg}")
     else:
-        st.markdown(f"**🤖 Bot:** {msg}")
+        st.markdown(f"**🤖 Nomi:** {msg}")
 
