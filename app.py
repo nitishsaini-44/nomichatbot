@@ -7,7 +7,7 @@ genai.configure(api_key=GOOGLE_APIKEY)
 
 model = genai.GenerativeModel(model_name="gemini-2.5-flash")  
 
-if "msg" not in st.session_state:
+if "messages" not in st.session_state:
     st.session_state.messages = []
 
 def gemini_response(user_message):
@@ -28,9 +28,9 @@ if submit and user:
     reply = gemini_response(user)
     st.session_state.messages.append(("Nomi",reply))
 
-for role, msg in st.session_state.messages:
+for role, messages in st.session_state.messages:
     if role == "user":
-        st.markdown(f"**🧑 You:** {msg}")
+        st.markdown(f"**🧑 You:** {messages}")
     else:
-        st.markdown(f"**🤖 Nomi:** {msg}")
+        st.markdown(f"**🤖 Nomi:** {messages}")
 
