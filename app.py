@@ -1,11 +1,13 @@
 import streamlit as st
 import google.generativeai as genai
+import time
+from google.api_core.exceptions import ResourceExhausted
 
 # -------------------- CONFIG --------------------
-GOOGLE_APIKEY = st.secrets['API_KEYS']
+GOOGLE_APIKEY = st.secrets["API_KEYS"]
 genai.configure(api_key=GOOGLE_APIKEY)
 
-model = genai.GenerativeModel(model_name="gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 # -------------------- SESSION STATE --------------------
 if "messages" not in st.session_state:
@@ -14,63 +16,75 @@ if "messages" not in st.session_state:
 if "personality" not in st.session_state:
     st.session_state.personality = "Savage 😈"
 
-# -------------------- PERSONALITY SELECTOR --------------------
+# -------------------- SIDEBAR --------------------
 st.sidebar.title("🎭 Choose Sagar's Personality")
 
 personality = st.sidebar.radio(
     "Select Mode:",
-    ["Savage 😈", "Friendly 😎", "Motivational 💪", "Professor 🎓"]
+    ["Savage 😈", "Friendly 😎"]
 )
 
 st.session_state.personality = personality
+
+# Clear chat button
+if st.sidebar.button("🗑 Clear Chat"):
+    st.session_state.messages = []
+    st.rerun()
 
 # -------------------- TITLE --------------------
 st.title("🤖 Sagar's Multiverse Bot 🔥")
 st.caption(f"Current Mode: {st.session_state.personality}")
 
-# -------------------- RESPONSE FUNCTION --------------------
-def gemini_response():
+# -------------------- PERSONALITY PROMPTS --------------------
+PERSONALITY_PROMPTS = {
+    "Savage 😈": """
+        You are Sagar in Savage Roast Mode.
+        Roast playfully, sarcastic but NOT toxic or offensive.
+        Keep it witty and funny.
+    """,
+    "Friendly 😎": """
+        You are Sagar in Friendly Mode.
+        Be chill, warm, and supportive.
+    """
+}
 
-    conversation_history = ""
-    for role, message in st.session_state.messages:
-        conversation_history += f"{role}: {message}\n"
+# -------------------- GEMINI RESPONSE FUNCTION --------------------
+def gemini_response(user_input):
 
-    personality_prompt = {
-        "Savage 😈": """
-            You are Sagar in Savage Roast Mode.
-            Roast the user playfully, sarcastic but not offensive.
-            Be dramatic, confident, witty.
-            """,
-        "Friendly 😎": """
-            You are Sagar in Friendly Mode.
-            Be warm, chill, supportive, humorous.
-            """,
-        "Motivational 💪": """
-            You are Sagar in Motivational Mode.
-            Be inspiring, energetic, uplifting like a life coach.
-            """,
-        "Professor 🎓": """
-            You are Sagar in Professor Mode.
-            Be clear, intelligent, slightly witty but informative.
-            Explain concepts deeply but simply.
-            """
-    }
+    # Limit memory to last 8 messages
+    recent_messages = st.session_state.messages[-8:]
+
+    # Convert to Gemini chat history format
+    history = []
+    for role, message in recent_messages:
+        if role == "User":
+            history.append({"role": "user", "parts": [message]})
+        else:
+            history.append({"role": "model", "parts": [message]})
+
+    # Start chat with trimmed history
+    chat = model.start_chat(history=history)
 
     prompt = f"""
-    {personality_prompt[st.session_state.personality]}
-    
+    {PERSONALITY_PROMPTS[st.session_state.personality]}
+
     Respond in first person as Sagar.
+    Keep response under 120 words.
     Use emojis appropriately.
-    Use previous conversation context.
 
-    Conversation so far:
-    {conversation_history}
-
-    Now respond to the latest message.
+    User says: {user_input}
     """
 
-    response = model.generate_content(prompt)
-    return response.text
+    try:
+        time.sleep(1)  # small delay to prevent rate limit spam
+        response = chat.send_message(prompt)
+        return response.text
+
+    except ResourceExhausted:
+        return "⚠️ Brooooo chill 😭 API quota exhausted. Try again later."
+
+    except Exception:
+        return "⚠️ Something went wrong. Even Sagar needs coffee ☕"
 
 # -------------------- DISPLAY CHAT --------------------
 for role, message in st.session_state.messages:
@@ -80,13 +94,14 @@ for role, message in st.session_state.messages:
 # -------------------- USER INPUT --------------------
 if user_input := st.chat_input("Type your message..."):
 
+    # Display user message
     st.session_state.messages.append(("User", user_input))
-
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    reply = gemini_response()
-    st.session_state.messages.append(("Sagar", reply))
+    # Generate reply
+    reply = gemini_response(user_input)
 
+    st.session_state.messages.append(("Sagar", reply))
     with st.chat_message("assistant"):
         st.markdown(reply)
