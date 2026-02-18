@@ -13,48 +13,21 @@ model = genai.GenerativeModel("gemini-2.5-flash")
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if "personality" not in st.session_state:
-    st.session_state.personality = "Savage 😈"
-
-# -------------------- SIDEBAR --------------------
-st.sidebar.title("🎭 Choose Sagar's Personality")
-
-personality = st.sidebar.radio(
-    "Select Mode:",
-    ["Savage 😈", "Friendly 😎"]
-)
-
-st.session_state.personality = personality
+# -------------------- TITLE --------------------
+st.title("🤖 Sagar's Bot 🤝")
+st.caption("Sagar here 😎🔥 Convo? Crushed it.")
 
 # Clear chat button
-if st.sidebar.button("🗑 Clear Chat"):
+if st.button("🗑 Clear Chat"):
     st.session_state.messages = []
     st.rerun()
-
-# -------------------- TITLE --------------------
-st.title("🤖 Sagar's Multiverse Bot 🔥")
-st.caption(f"Current Mode: {st.session_state.personality}")
-
-# -------------------- PERSONALITY PROMPTS --------------------
-PERSONALITY_PROMPTS = {
-    "Savage 😈": """
-        You are Sagar in Savage Roast Mode.
-        Roast playfully, sarcastic but NOT toxic or offensive.
-        Keep it witty and funny.
-    """,
-    "Friendly 😎": """
-        You are Sagar in Friendly Mode.
-        Be chill, warm, and supportive.
-    """
-}
 
 # -------------------- GEMINI RESPONSE FUNCTION --------------------
 def gemini_response(user_input):
 
-    # Limit memory to last 8 messages
+    # Limit memory to last 8 messages (prevents quota exhaustion)
     recent_messages = st.session_state.messages[-8:]
 
-    # Convert to Gemini chat history format
     history = []
     for role, message in recent_messages:
         if role == "User":
@@ -62,29 +35,27 @@ def gemini_response(user_input):
         else:
             history.append({"role": "model", "parts": [message]})
 
-    # Start chat with trimmed history
     chat = model.start_chat(history=history)
 
     prompt = f"""
-    {PERSONALITY_PROMPTS[st.session_state.personality]}
-
-    Respond in first person as Sagar.
+    Reply to the user as Sagar in a funny, humorous, confident and friendly tone.
+    Respond like you ARE Sagar (first person).
+    Add emojis to make the response more fun.
     Keep response under 120 words.
-    Use emojis appropriately.
 
     User says: {user_input}
     """
 
     try:
-        time.sleep(1)  # small delay to prevent rate limit spam
+        time.sleep(1)  # small delay to reduce rate limit issues
         response = chat.send_message(prompt)
         return response.text
 
     except ResourceExhausted:
-        return "⚠️ Brooooo chill 😭 API quota exhausted. Try again later."
+        return "⚠️ Arre bhai 😭 API quota khatam ho gaya. Thoda break lete hain!"
 
     except Exception:
-        return "⚠️ Something went wrong. Even Sagar needs coffee ☕"
+        return "⚠️ Something went wrong. Even Sagar needs chai ☕"
 
 # -------------------- DISPLAY CHAT --------------------
 for role, message in st.session_state.messages:
@@ -94,12 +65,10 @@ for role, message in st.session_state.messages:
 # -------------------- USER INPUT --------------------
 if user_input := st.chat_input("Type your message..."):
 
-    # Display user message
     st.session_state.messages.append(("User", user_input))
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # Generate reply
     reply = gemini_response(user_input)
 
     st.session_state.messages.append(("Sagar", reply))
