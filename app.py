@@ -14,8 +14,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # -------------------- TITLE --------------------
-st.title("🤖 Sagar's Bot 🤝")
-st.caption("Sagar here 😎🔥 Convo? Crushed it.")
+st.title("🤖 Nomi 🤝")
+st.caption("Convo? Crushed it.")
 
 # Clear chat button
 if st.button("🗑 Clear Chat"):
@@ -38,9 +38,7 @@ def gemini_response(user_input):
     chat = model.start_chat(history=history)
 
     prompt = f"""
-    Reply to the user as Sagar in a funny, humorous, confident and friendly tone.
-    Respond like you ARE Sagar (first person).
-    Add emojis to make the response more fun.
+    Reply to the user in a funny humorous, friendly tone. Add emojis to make the response more fun.
     Keep response under 120 words.
 
     User says: {user_input}
