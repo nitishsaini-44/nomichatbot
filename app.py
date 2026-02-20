@@ -14,8 +14,12 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # -------------------- TITLE --------------------
-st.title("🤖 Nomi 🤝")
-st.caption("Convo? Crushed it.")
+
+# Centered chatbot name
+st.markdown("""
+<h1 style='text-align: center;'>🤖 Nomi </h1>
+<p style='text-align: center;'>Convo? Crushed it.</p>
+""", unsafe_allow_html=True)
 
 # Clear chat button
 if st.button("🗑 Clear Chat"):
